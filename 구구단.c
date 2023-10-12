@@ -6,7 +6,7 @@ int main(void) {
 
 	for (int i = 1; i < 10; i++) {
 		int result = n * i;
-		printf("%d * %d = %d\n", n, i, result); //±¸±¸´Ü °á°ú °ª Ãâ·Â
+		printf("%d * %d = %d\n", n, i, result); // êµ¬êµ¬ë‹¨ ê²°ê³¼ê°’ ì¶œë ¥
 	}
 	return 0;
 }
