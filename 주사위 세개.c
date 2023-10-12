@@ -6,11 +6,11 @@ int main(void) {
 	int c = 0;
 	scanf("%d %d %d", &a, &b, &c);
 
-	if ((a == b) && (b == c)) { // a,b,c°¡ °°À» ¶§
+	if ((a == b) && (b == c)) { // a,b,cê°€ ê°™ì„ ë•Œ
 		int z = 10000 + (a * 1000);
 		printf("%d", z);
 	}
-	else if ((a == b) || (a == c)) { // a,b,c Áß 2°³°¡ °°À» ¶§
+	else if ((a == b) || (a == c)) { // a,b,c ì¤‘ 2ê°œê°€ ê°™ì„ ë•Œ
 		int z = 1000 + (a * 100);
 		printf("%d", z);
 	}
@@ -18,7 +18,7 @@ int main(void) {
 		int z = 1000 + (b * 100);
 		printf("%d", z);
 	}
-	else if ((a > b) && (a > c)) { // °¡Àå Å« ¼ö ÆÇº°
+	else if ((a > b) && (a > c)) { // ê°€ì¥ í° ìˆ˜ íŒë³„
 		int z = a * 100;
 		printf("%d", z);
 	}
