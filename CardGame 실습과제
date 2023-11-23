@@ -1,0 +1,139 @@
+package 실습;
+import java.util.ArrayList;
+import java.util.Collections;
+
+class Card {
+		String suit;
+		String number;
+		public Card(String suit, String number) {
+			this.suit = suit;
+			this.number = number;
+		}
+		public String toString() {
+			return "("+suit+" "+number+")";
+		}
+}
+
+class Deck {
+	ArrayList<Card> deck = new ArrayList<Card>();
+	String [] suits = {"CLUB","DIAMOND","HEART","SPADE"};
+	String [] numbers = {"2","3","4","5","6","7","8","9","10","J","Q","K","A"};
+	
+	public Deck() {
+		for(int i =0; i<suits.length; i++) {
+			for(int j =0; j<numbers.length; j++) {
+				deck.add(new Card(suits[i],numbers[j]));
+			}
+		}
+	}
+	public void shuffle() {
+		Collections.shuffle(deck);
+	}
+	
+	public Card deal() {
+		return deck.remove(0);
+		}
+	 
+	
+    public String toString() {
+        String result = "";
+
+        for (int i = 0; i < suits.length; i++) {
+            for (int j = 0; j < numbers.length; j++) {
+                result += "(" + suits[i] + " " + numbers[j] + ")";
+            }
+            result += "\n";
+        }
+
+        return result;
+    }
+}
+
+class Player {
+	ArrayList<Card> list = new ArrayList<Card>();
+	
+	public void getCard(Card card) {
+		list.add(card);
+	}
+	public void showCards() {
+		System.out.println(list);
+	}
+}
+
+public class CardGame {
+	
+	public static void main(String[] args) {
+        Deck deck = new Deck();
+        System.out.print(deck);
+        deck.shuffle();
+
+        Player p1 = new Player();
+        Player p2 = new Player();
+
+        for (int i = 0; i < 5; i++) {
+            p1.getCard(deck.deal());
+            p2.getCard(deck.deal());
+        }
+        
+        for(int i =0; i<5; i++) {
+        	System.out.println("p1 #"+(i+1)+" card=" + p1.list.get(i).number);
+            System.out.println("p2 #"+(i+1)+" card=" + p2.list.get(i).number);	
+        }
+       
+        
+        System.out.print("p1: ");
+        p1.showCards();
+        System.out.print("p2: ");
+        p2.showCards();
+
+        int p1Total = calculateTotal(p1);
+        int p2Total = calculateTotal(p2);
+
+        System.out.println("p1=" + p1Total + " vs. p2=" + p2Total + " -> " + (p1Total > p2Total ? "p1 승리" : "p2 승리"));
+    }
+
+    public static int calculateTotal(Player player) {
+        int total = 0;
+
+        for (Card card : player.list) {
+            int value = getValue(card.number);
+            total += value;
+        }
+
+        return total;
+    }
+
+    public static int getValue(String number) {
+        switch (number) {
+            case "A":
+                return 1;
+            case "2":
+                return 2;
+            case "3":
+                return 3;
+            case "4":
+                return 4;
+            case "5":
+                return 5;
+            case "6":
+                return 6;
+            case "7":
+                return 7;
+            case "8":
+                return 8;
+            case "9":
+                return 9;
+            case "10":
+            	return 10;
+            case "J":
+            	return 11;
+            case "Q":
+            	return 12;
+            case "K":
+                return 13;
+            default:
+                return 0;
+        }
+    }
+  
+ }
