@@ -1,0 +1,83 @@
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+import javax.swing.Timer;
+
+public class BouncingBall extends JFrame implements ActionListener {
+    static final int WIDTH = 600;
+    static final int HEIGHT = 200;
+    private static final int PERIOD = 10;
+
+    class MyPanel extends JPanel {
+        int x1 = 0, y1 = 0, xInc1 = 3, yInc1 = 3, diameter = 60;
+        int x2 = 100, y2 = 0, xInc2 = 2, yInc2 = 2;
+
+        public void paintComponent(Graphics g) {
+            super.paintComponent(g);
+
+            // 공1의 이동과 벽과의 충돌 검사
+            if (x1 < 0 || x1 > (BouncingBall.WIDTH - diameter))
+                xInc1 = -xInc1;
+            if (y1 < 0 || y1 > (BouncingBall.HEIGHT - diameter))
+                yInc1 = -yInc1;
+
+            // 공2의 이동과 벽과의 충돌 검사
+            if (x2 < 0 || x2 > (BouncingBall.WIDTH - diameter))
+                xInc2 = -xInc2;
+            if (y2 < 0 || y2 > (BouncingBall.HEIGHT - diameter))
+                yInc2 = -yInc2;
+
+            // 공1의 위치 업데이트
+            x1 += xInc1;
+            y1 += yInc1;
+
+            // 공2의 위치 업데이트
+            x2 += xInc2;
+            y2 += yInc2;
+
+            // 두 공이 부딪혔을 때 반사 처리
+            if (Math.abs(x1 - x2) < diameter && Math.abs(y1 - y2) < diameter) {
+                int tempX = xInc1;
+                int tempY = yInc1;
+                xInc1 = xInc2;
+                yInc1 = yInc2;
+                xInc2 = tempX;
+                yInc2 = tempY;
+            }
+
+            // 공1 그리기
+            g.setColor(Color.RED);
+            g.fillOval(x1, y1, diameter, diameter);
+
+            // 공2 그리기
+            g.setColor(Color.BLUE);
+            g.fillOval(x2, y2, diameter, diameter);
+        }
+    }
+
+    public BouncingBall() {
+        MyPanel panel = new MyPanel();
+        panel.setPreferredSize(new Dimension(WIDTH, HEIGHT));
+        add(panel);
+        pack();
+        setTitle("Bouncing Balls");
+        Timer timer = new Timer(PERIOD, this);
+        timer.start();
+        setVisible(true);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent evt) {
+        repaint();
+    }
+
+    public static void main(String[] args) {
+        BouncingBall f = new BouncingBall();
+    }
+}
