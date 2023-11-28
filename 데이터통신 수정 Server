@@ -1,0 +1,94 @@
+#define _CRT_SECURE_NO_WARNINGS
+#include <winsock2.h>
+#include <stdio.h>
+#include <conio.h>
+
+#pragma comment(lib, "wsock32.lib")
+#pragma comment(lib, "ws2_32.lib")
+
+#define BUFFER_SIZE 100
+
+
+
+
+int main() {
+	printf("[[[ Server ]]]\n");
+
+	WSADATA wsdata;
+	if (WSAStartup(MAKEWORD(2, 2), &wsdata) != 0) {
+		printf("WS2_32.DLL을 초기화하는데 실패했습니다.\n");
+		return 0;
+	}
+	printf("1. WS2_32.DLL을 초기화하는데 성공했습니다.\n");
+
+	SOCKET serverSocket = socket(PF_INET, SOCK_STREAM, 0);
+
+	SOCKADDR_IN serverAddress;
+	ZeroMemory(&serverAddress, sizeof(serverAddress));
+	serverAddress.sin_family = AF_INET;
+	serverAddress.sin_port = htons(10000);
+	serverAddress.sin_addr.s_addr = htonl(ADDR_ANY);
+
+	if (bind(serverSocket, (SOCKADDR*)&serverAddress, sizeof(serverAddress)) == SOCKET_ERROR) {
+		printf("serverSocket에 IP와 PORT를 부여하는데 실패했습니다.\n");
+		return 0;
+	}
+	printf("2. serverSocket에 IP와 Port를 부여하는데 성공했습니다.\n");
+
+	printf("3. 클라이언트의 접속을 기다립니다.\n");
+
+	listen(serverSocket, SOMAXCONN);
+
+	SOCKET socket;
+	if ((socket = accept(serverSocket, NULL, NULL)) == INVALID_SOCKET) {
+		printf("클라이언트와 데이터를 주고 받는 socket을 생성할 수 없습니다.\n");
+		return 0;
+	}
+	printf("!! 클라이언트가 접속했습니다. 메시지를 기다리는 중....\n");
+
+	
+	printf("파일 내용: ");
+	char buffer[BUFFER_SIZE];
+	int bytesRead = recv(socket, buffer, sizeof(buffer), 0);
+	if (bytesRead <= 0) {
+		printf("클라이언트로부터 데이터를 받지 못했습니다.\n");
+		return 0;
+	}
+	for(int i = 0; i < bytesRead; ++i) {
+		fputc(buffer[i], stdout);
+	}
+
+	printf("\n");
+	printf("변환된 내용: ");
+
+	FILE* outputFile = fopen("C:\\Users\\user\\Desktop\\text.txt", "w"); // 쓰기 모드로 파일 열기
+	if (outputFile == NULL) {
+		printf("파일을 열 수 없습니다.\n");
+		return 0;
+	}
+
+	for (int i = 0; i < bytesRead; ++i) {
+		buffer[i] += 4;
+
+		// 변환된 문자를 화면에 출력
+		fputc(buffer[i], stdout);
+
+		// 변환된 문자를 파일에 쓰기
+		fputc(buffer[i], outputFile);
+	}
+
+	fclose(outputFile); // 파일 쓰기 종료
+	
+	send(socket, buffer, bytesRead, 0);
+
+	printf("\n");
+	
+
+	closesocket(socket);
+	printf("클라이언트와의 접속을 종료했습니다.\n");
+
+	WSACleanup();
+	printf("WS2_32.DLL의 사용을 종료합니다.\n");
+
+	return 1;
+}
