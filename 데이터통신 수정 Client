@@ -1,0 +1,112 @@
+#define _CRT_SECURE_NO_WARNINGS
+#define _WINSOCK_DEPRECATED_NO_WARNINGS
+
+#include <stdio.h>
+#include <winsock2.h>
+#include <conio.h>
+
+#pragma comment(lib, "wsock32.lib")
+#pragma comment(lib, "ws2_32.lib")
+#define BUFFER_SIZE 100
+
+int main(void) {
+    SOCKET s;
+    WSADATA wsaData;
+    struct sockaddr_in	sin;
+
+    printf("[[[ Client ]]]\n");
+
+    if (WSAStartup(WINSOCK_VERSION, &wsaData) != 0) {
+        printf("WSAStartup 실패, 에러 코드 = %d ", WSAGetLastError());
+        return 0;
+    }
+
+    s = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
+
+    if (s == INVALID_SOCKET) {
+        printf("소켓 생성 실패, 에러코드 : %d ", WSAGetLastError());
+        WSACleanup();
+        return 0;
+    }
+
+    sin.sin_family = AF_INET;
+    sin.sin_addr.s_addr = inet_addr("127.0.0.1");
+    sin.sin_port = htons(10000);
+
+    if (connect(s, (struct sockaddr*)&sin, sizeof(sin)) != 0) {
+        printf("접속 실패, 에러 코드 =  %u ", WSAGetLastError());
+        closesocket(s);
+        WSACleanup();
+        return 0;
+    }
+
+    printf("127.0.0.1의 10000번 포트에 접속을 성공하였습니다.\n");
+    printf("파일 이름을 입력하세요: ");
+    char filename[100];
+    scanf("%s", &filename);
+    
+
+    // 파일을 읽기 위해 파일을 엽니다.
+    printf("파일을 엽니다");
+    FILE* file = fopen(filename, "rb");
+    if (file == NULL) {
+        printf("파일 열기 오류: %s\n", filename);
+        closesocket(s);
+        WSACleanup();
+        return 0;
+    }
+
+
+    // 파일 내용을 읽어서 서버에 보냅니다.
+    char buffer[BUFFER_SIZE];
+    int bytesRead;
+    
+
+    while ((bytesRead = fread(buffer, 1, sizeof(buffer), file)) > 0) {
+        if (send(s, buffer, bytesRead, 0) == SOCKET_ERROR) {
+            printf("파일 데이터 전송 오류, 오류 코드 = %u\n", WSAGetLastError());
+            fclose(file);
+            closesocket(s);
+            WSACleanup();
+            return 0;
+        }
+    }
+
+
+    fclose(file);
+    
+    printf("\n");
+
+    printf("서버로부터 전송된 내용: ");
+        bytesRead = recv(s, buffer, BUFFER_SIZE, 0);
+        if (bytesRead <=0) {
+			printf("수신 실패, 에러 코드 = %u ", WSAGetLastError());
+			closesocket(s);
+			WSACleanup();
+			return 0;
+		}
+       for (int i = 0; i < bytesRead; ++i) {
+            // 클라이언트에서 할 작업 수행 (예: 화면에 출력)
+            fputc(buffer[i], stdout);
+        }
+    
+
+    printf("\n");
+
+    
+
+    printf("서버와의 접속을 종료했습니다.");
+
+    if (closesocket(s) != 0) {
+        printf("소켓 제거 실패, 에러 코드 = %u ", WSAGetLastError());
+        WSACleanup();
+        return 0;
+    }
+
+    if (WSACleanup() != 0) {
+        printf("WSACleanup 실패, 에러 코드 = %u ", WSAGetLastError());
+        return 0;
+    }
+
+    return 0;
+}
