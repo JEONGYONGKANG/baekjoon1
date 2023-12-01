@@ -1,0 +1,99 @@
+#define _CRT_SECURE_NO_WARNINGS
+#include <winsock2.h>
+#include <stdio.h>
+#include <conio.h>
+
+#pragma comment(lib, "wsock32.lib")
+#pragma comment(lib, "ws2_32.lib")
+
+#define BUFFER_SIZE 100
+
+char exchange(char* fromClient, char* toClient);
+
+int main() {
+	printf("[[[ Server ]]]\n");
+
+	WSADATA wsdata;
+	if (WSAStartup(MAKEWORD(2, 2), &wsdata) != 0) {
+		printf("WS2_32.DLL을 초기화하는데 실패했습니다.\n");
+		return 0;
+	}
+	printf("1. WS2_32.DLL을 초기화하는데 성공했습니다.\n");
+
+
+	SOCKET serverSocket = socket(PF_INET, SOCK_STREAM, 0);
+
+	SOCKADDR_IN serverAddress;
+	ZeroMemory(&serverAddress, sizeof(serverAddress));
+	serverAddress.sin_family = AF_INET;
+	serverAddress.sin_port = htons(10000);
+	serverAddress.sin_addr.s_addr = htonl(ADDR_ANY);
+
+	if (bind(serverSocket, (SOCKADDR*)&serverAddress, sizeof(serverAddress)) == SOCKET_ERROR) {
+		printf("serverSocket에 IP와 PORT를 부여하는데 실패했습니다.\n");
+		return 0;
+	}
+	printf("2. serverSocket에 IP와 Port를 부여하는데 성공했습니다.\n");
+
+	printf("3. 클라이언트의 접속을 기다립니다.\n");
+
+	listen(serverSocket, SOMAXCONN);
+
+	SOCKET socket;
+	if ((socket = accept(serverSocket, NULL, NULL)) == INVALID_SOCKET) {
+		printf("클라이언트와 데이터를 주고 받는 socket을 생성할 수 없습니다.\n");
+		return 0;
+	}
+	printf("!! 클라이언트가 접속했습니다. 메시지를 기다리는 중....\n");
+	printf("\n");
+	char fromClient[BUFFER_SIZE+1];
+	recv(socket, fromClient, BUFFER_SIZE, 0);
+	printf("클라이언트로 부터 전달 받은 메세지: %s\n\n", fromClient);
+
+	char toClient[BUFFER_SIZE];
+	char len[1];
+	len[0] = exchange(fromClient, toClient);
+
+	send(socket, len, sizeof(char), 0);	// 클라이언트로 전달할 메세지의 길이를 전달한다.
+	send(socket, toClient, len[0], 0); // 클라이언트로 메세지를 전달한다.
+	printf("클라이언트로 전달한 메세지 : %s\n", toClient);
+	printf("클라이언트로 전달한 메세지 길이 : %d\n\n", len[0]);
+	
+	
+	
+	char file[100];      // 파일 이름을 넣을 배열이다.
+	
+	recv(socket, file, 100, 0);   // 클라이언트로부터 파일 이름을 받는다.
+
+	FILE* fp = NULL;
+	if ((fp = fopen(file, "w")) == NULL) {
+		fprintf(stderr, "파일 %s을 열 수 없습니다.\n", file);
+	}
+	fputs(toClient, fp);      // 파일에 변환된 데이터를 쓰는 함수이다.
+
+	fclose(fp);
+
+	closesocket(socket);
+	printf("클라이언트와의 접속을 종료했습니다.\n");
+
+	WSACleanup();
+	printf("WS2_32.DLL의 사용을 종료합니다.\n");
+
+	return 1;
+}
+
+char exchange(char* fromClient, char* toClient) {
+	
+	char num = 0;
+
+	for (int i = 0; i < 100; i++) {
+		toClient[i] = fromClient[i];
+		if (fromClient[i] == '\0')
+			break;
+		num++;
+	}
+	for (int i = 0; i < num; i++) {
+		toClient[i] = fromClient[i] + 4; // 학번 끝자리가 4임.	
+	}
+	return num;
+}
