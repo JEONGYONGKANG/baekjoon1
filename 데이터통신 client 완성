@@ -1,0 +1,91 @@
+#define _CRT_SECURE_NO_WARNINGS
+#define _WINSOCK_DEPRECATED_NO_WARNINGS
+
+#include <stdio.h>
+#include <winsock2.h>
+#include <conio.h>
+
+#pragma comment(lib, "wsock32.lib")
+#pragma comment(lib, "ws2_32.lib")
+#define BUFFER_SIZE 100
+
+int main(void) {
+    SOCKET s;
+    WSADATA wsaData;
+    struct sockaddr_in	sin;
+
+    printf("[[[ Client ]]]\n");
+
+    if (WSAStartup(WINSOCK_VERSION, &wsaData) != 0) {
+        printf("WSAStartup 실패, 에러 코드 = %d ", WSAGetLastError());
+        return 0;
+    }
+
+    s = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
+
+    if (s == INVALID_SOCKET) {
+        printf("소켓 생성 실패, 에러코드 : %d ", WSAGetLastError());
+        WSACleanup();
+        return 0;
+    }
+
+    sin.sin_family = AF_INET;
+    sin.sin_addr.s_addr = inet_addr("127.0.0.1");
+    sin.sin_port = htons(10000);
+
+    if (connect(s, (struct sockaddr*)&sin, sizeof(sin)) != 0) {
+        printf("접속 실패, 에러 코드 =  %u ", WSAGetLastError());
+        closesocket(s);
+        WSACleanup();
+        return 0;
+    }
+
+    printf("127.0.0.1의 10000번 포트에 접속을 성공하였습니다.\n");
+    char file[100];
+    char toServer[BUFFER_SIZE];
+    FILE* fp;
+    printf("전송할 파일 : ");
+    gets(file);
+    if ((fp = fopen(file, "r")) == NULL) {
+    }
+
+    fgets(toServer, BUFFER_SIZE, fp);	// 파일에서 문장을 입력 받아 toServer 배열에 넣는다.
+
+    send(s, toServer, strlen(toServer) + 1, 0);
+
+    fclose(fp);
+
+    char len[1];
+    char fromServer[BUFFER_SIZE + 1];
+
+    recv(s, len, sizeof(char), 0);  // 서버로 부터 메세지의 길이를 받는다.
+    recv(s, fromServer, len[0], 0);  // 서버로 부터 메세지를 받는다.
+
+
+    printf("\n서버로부터 받은 메세지 : ");
+    for (int j = 0; j < len[0]; j++) {
+        printf("%c", fromServer[j]);
+    }
+    printf("\n서버로부터 받은 메세지 길이: %d\n", len[0]);
+
+    printf("\n");
+
+    send(s, file, strlen(file) + 1, 0);
+
+    printf("서버와의 접속을 종료했습니다.");
+
+
+
+    if (closesocket(s) != 0) {
+        printf("소켓 제거 실패, 에러 코드 = %u ", WSAGetLastError());
+        WSACleanup();
+        return 0;
+    }
+
+    if (WSACleanup() != 0) {
+        printf("WSACleanup 실패, 에러 코드 = %u ", WSAGetLastError());
+        return 0;
+    }
+
+    return 0;
+}
